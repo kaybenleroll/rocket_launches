@@ -1,0 +1,89 @@
+---
+title: "Scraping Launch Data"
+author: "mickcooney@gmail.com"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+
+```{r knit_opts, include=FALSE}
+rm(list = ls())
+
+library(tidyverse)
+library(scales)
+library(cowplot)
+library(feather)
+library(rvest)
+
+
+options(width = 90L
+       ,warn  = 1)
+
+
+knitr::opts_chunk$set(tidy       = FALSE
+                     ,cache      = FALSE
+                     ,message    = FALSE
+                     ,warning    = FALSE
+                     ,fig.height =     8
+                     ,fig.width  =    11
+                     )
+
+
+set.seed(42)
+
+```
+
+# Scrape Launch Data
+
+```{r setup_scraper, echo=TRUE}
+scrape_page <- function(page_url) {
+    message(paste0("Scraping page ", page_url))
+    
+    scraped_data_tbl <- read_html(page_url) %>%
+        html_nodes('#chronlist') %>%
+        html_table() %>%
+        .[[1]]
+
+    return(scraped_data_tbl)
+}
+
+year_range <- 1957:2017
+
+scraped_data_tbl <- data_frame(
+    year     = 1957:2017
+   ,page_url = map_chr(1957:2017, function(x) paste0('http://space.skyrocket.de/doc_chr/lau', x, '.htm'))
+    ) %>%
+    mutate(scrape_data = map(page_url, scrape_page))
+
+
+launch_data_tbl <- scraped_data_tbl %>%
+    unnest %>%
+    filter(!ID %in% c('January', 'February', 'March'
+                     ,'April', 'May', 'June'
+                     ,'July', 'August', 'September'
+                     ,'October','November','December')) %>%
+    transmute(id             = ID
+             ,launch_date    = as.Date(Date, '%d.%m.%Y')
+             ,payload        = `Payload(s)`
+             ,launch_site    = Site
+             ,launch_vehicle = coalesce(Vehicle, `Launch Vehicle`)
+             ,details        = Remark)
+```
+
+
+# Write to Data
+
+We now write the launch data to disk
+
+```{r write_to_disk, echo=TRUE}
+launch_data_tbl %>% write_csv    (path = 'data/rocket_launch_data.csv')
+launch_data_tbl %>% write_feather(path = 'data/rocket_launch_data.feather')
+```
+
+

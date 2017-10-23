@@ -73,7 +73,10 @@ launch_data_tbl <- scraped_data_tbl %>%
              ,payload        = `Payload(s)`
              ,launch_site    = Site
              ,launch_vehicle = coalesce(Vehicle, `Launch Vehicle`)
-             ,details        = Remark)
+             ,details        = Remark
+             ,failure        = grepl('Failure', details, ignore.case = TRUE)
+             
+             )
 ```
 
 

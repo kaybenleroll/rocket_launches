@@ -1,0 +1,95 @@
+---
+title: "Launch Data: Initial Explorations"
+author: "mickcooney@gmail.com"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    fig_caption: yes
+    theme: cerulean
+  pdf_document: default
+---
+
+
+```{r knit_opts, include=FALSE}
+rm(list = ls())
+
+library(tidyverse)
+library(scales)
+library(cowplot)
+library(feather)
+
+
+options(width = 90L
+       ,warn  = 1)
+
+
+knitr::opts_chunk$set(tidy       = FALSE
+                     ,cache      = FALSE
+                     ,message    = FALSE
+                     ,warning    = FALSE
+                     ,fig.height =     8
+                     ,fig.width  =    11
+                     )
+
+
+set.seed(42)
+```
+
+# Load Data
+
+```{r load_launch_data, echo=TRUE}
+launch_data_tbl <- read_feather("data/rocket_launch_data.feather")
+```
+
+
+## Filter Subset and Add Grouping Data
+
+```{r filter_lv_types, echo=TRUE}
+rocket_type_tbl <- tribble(
+    ~country,   ~manufact,      ~design,    ~lv_pattern
+    ,   'RU',      "USSR",        'R-7',       'Sputnik'
+    ,   'RU',      "USSR",        'R-7',         'Soyuz'
+    ,   'RU',      "USSR",        'R-7',       'Voskhod'
+    ,   'RU',      "USSR",       'R-12',        'Kosmos'
+    ,   'RU',      "USSR",       'R-14',      'Kosmos-3'
+    ,   'RU',      "USSR",    'R-16/36',      'Trisklon'
+    ,   'RU',      "USSR",     'UR-500',        'Proton'
+    ,   'US',   'Shuttle',    'Shuttle',       'Shuttle'
+    ,   'US',    'Saturn',     'Saturn',        'Saturn'
+    ,   'US',    'Falcon',   'Falcon-1',      'Falcon-1'
+    ,   'US',    'Falcon',   'Falcon-9',      'Falcon-9'
+    ,   'US',     'Atlas',   'Atlas-14',   'Atlas-[1-4]'
+    ,   'US',     'Atlas',    'Atlas-5',       'Atlas-5'
+    ,   'EU',    'Ariane',  'Ariane-14',  'Ariane-[1-4]'
+    ,   'EU',    'Ariane',   'Ariane-5',      'Ariane-5'
+    ,   'EU',      'Vega',       'Vega',          'Vega'
+    ,   'CH',        'CZ',      'CZ-24',          'FB-1'
+    ,   'CH',        'CZ',      'CZ-24',      'CZ-[2-4]'
+    ,   'CH',        'CZ',       'CZ-5',          'CZ-5'
+    ,   'CH',        'CZ',       'CZ-6',          'CZ-6'
+    ,   'CH',        'CZ',       'CZ-7',          'CZ-7'
+    ,   'IN',      'GSLV',       'GSLV',          'PSLV'
+    ,   'IN',      'GSLV',       'GSLV', 'GSLV Mk.[1-2]'
+    ,   'JP',       'H-2',        'H-2',           'H-2'
+    ,   'JP',    'Lambda',     'Lambda',           'H-2'
+)
+
+govt_tbl <- tribble(
+    ~country,             ~govt_type
+       ,'RU',   'European Communist'
+       ,'US',    'Western Democracy'
+       ,'EU',    'Western Democracy'
+       ,'CH',      'Asian Communist'
+       ,'IN',              'Neutral'
+       ,'JP',      'Asian Democracy'
+)
+
+category_tbl <- govt_tbl %>%
+    left_join(rocket_type_tbl, by = 'country')
+
+```
+
+
+
